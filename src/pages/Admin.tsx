@@ -164,7 +164,8 @@ export default function Admin() {
 
         <div className="pt-6 border-t border-gray-100">
            <p className="text-[10px] text-gray-400 font-bold leading-relaxed">
-             * লগইন করতে সমস্যা হলে আপনার ব্রাউজারের কুকি সচল আছে কি না পরীক্ষা করুন এবং Firebase কনসোলে আপনার ডোমেইনটি Allowlist করা আছে কি না নিশ্চিত হোন।
+             * লগইন করতে সমস্যা হলে আপনার ব্রাউজারের কুকি সচল আছে কি না পরীক্ষা করুন। <br />
+             <span className="text-secondary">**গুরুত্বপূর্ণ:** আপনার Vercel ডোমেইনটি (govt-school-psi.vercel.app) অবশ্যই Firebase Console {'>'} Authentication {'>'} Settings {'>'} Authorized Domains লিস্টে যুক্ত থাকতে হবে।</span>
            </p>
         </div>
       </div>

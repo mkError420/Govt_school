@@ -23,7 +23,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const isAdmin = user?.email === 'mk.rabbani.cse@gmail.com';
+  const isAdmin = user?.email?.toLowerCase() === 'mk.rabbani.cse@gmail.com';
 
   return (
     <AuthContext.Provider value={{ user, loading, isAdmin, login: signInWithGoogle, signout: logout }}>

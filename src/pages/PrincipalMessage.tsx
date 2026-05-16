@@ -69,7 +69,7 @@ export default function PrincipalMessage() {
           <div className="gov-box sticky top-24">
              <div className="p-2">
                 <img 
-                  src={content.image}
+                  src={content.image || null}
                   alt="Principal"
                   className="w-full h-auto rounded-sm border border-gray-200 grayscale shadow-inner"
                   referrerPolicy="no-referrer"

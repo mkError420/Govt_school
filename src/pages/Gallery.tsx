@@ -71,7 +71,7 @@ export default function Gallery() {
             >
               <div className="aspect-video relative">
                 <img 
-                  src={item.url} 
+                  src={item.url || null} 
                   alt={item.title} 
                   className="w-full h-full object-cover grayscale transition-all duration-700 group-hover:grayscale-0 group-hover:scale-105"
                   referrerPolicy="no-referrer"
@@ -102,7 +102,7 @@ export default function Gallery() {
             <X className="w-8 h-8" />
           </button>
           <img 
-            src={selectedImage} 
+            src={selectedImage || null} 
             alt="Preview" 
             className="max-w-full max-h-full rounded-sm shadow-2xl"
             referrerPolicy="no-referrer"

@@ -58,7 +58,7 @@ export default function StaffList() {
                 <td className="px-4 py-3 border-r border-gray-50 flex justify-center">
                   <div className="w-10 h-10 rounded-sm border border-gray-200 overflow-hidden bg-gray-50">
                     <img 
-                      src={member.image} 
+                      src={member.image || null} 
                       alt={member.name} 
                       className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all"
                       referrerPolicy="no-referrer"

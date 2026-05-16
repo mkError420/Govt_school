@@ -41,7 +41,7 @@ export default function Sidebar() {
         </div>
         <div className="p-4 flex flex-col items-center text-center">
           <img
-            src={p.image}
+            src={p.image || null}
             alt="Principal"
             className="w-32 h-32 rounded-sm border border-gray-200 mb-3 grayscale shadow-sm"
             referrerPolicy="no-referrer"
@@ -49,7 +49,7 @@ export default function Sidebar() {
           <h4 className="text-[13px] font-black text-primary leading-tight">{p.name}</h4>
           <p className="text-[10px] text-gray-500 font-bold mb-3 uppercase tracking-tighter">{p.role}</p>
           <p className="text-[11px] text-gray-600 italic leading-relaxed mb-4 p-2 bg-gray-50 rounded">
-            "{p.excerpt || (p.message ? p.message[0].substring(0, 100) + '...' : '')}"
+            "{p.excerpt || (p.message && p.message[0] ? p.message[0].substring(0, 100) + '...' : '')}"
           </p>
           <Link to="/principal-message" className="bg-primary text-white px-4 py-1.5 rounded-sm text-[10px] font-black hover:bg-opacity-90 shadow-sm text-center block w-full">
             বিস্তারিত...
@@ -85,7 +85,7 @@ export default function Sidebar() {
           {notices.map((notice, idx) => (
             <Link key={idx} to="/notices" className="flex gap-2 p-2 hover:bg-gray-50 border-b border-gray-100 last:border-0 cursor-pointer group">
               <span className="bg-primary/10 text-primary text-[10px] py-1 font-black shrink-0 w-12 text-center rounded border border-primary/5">
-                {notice.date.split(',')[0]}
+                {notice.date ? notice.date.split(',')[0] : 'N/A'}
               </span>
               <p className="text-[11px] font-bold text-gray-700 leading-tight group-hover:text-primary transition-colors">
                 {notice.title}

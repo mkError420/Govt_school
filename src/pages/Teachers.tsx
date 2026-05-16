@@ -58,7 +58,7 @@ export default function Teachers() {
                 <td className="px-4 py-3 border-r border-gray-50 flex justify-center">
                   <div className="w-12 h-12 rounded-sm border border-gray-200 overflow-hidden bg-gray-50">
                     <img 
-                      src={teacher.image} 
+                      src={teacher.image || null} 
                       alt={teacher.name} 
                       className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all"
                       referrerPolicy="no-referrer"
