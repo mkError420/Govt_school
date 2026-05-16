@@ -24,6 +24,8 @@ import {
 } from '../lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
+import firebaseConfig from '../../firebase-applet-config.json';
+
 export default function Admin() {
   const { user, login, signout, isAdmin, loading } = useAuth();
   const [activeTab, setActiveTab] = useState<'notices' | 'teachers' | 'staff' | 'gallery' | 'docs' | 'settings'>('notices');
@@ -121,6 +123,22 @@ export default function Admin() {
     }
   };
 
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  const handleLogin = async () => {
+    try {
+      setAuthError(null);
+      await login();
+    } catch (err: any) {
+      console.error("Login detail error:", err);
+      if (err.code === 'auth/unauthorized-domain') {
+        setAuthError(`Domain Unauthorized for Project: ${firebaseConfig.projectId}. Actual origin: ${window.location.origin}`);
+      } else {
+        setAuthError(err.message || 'Login failed. Please try again.');
+      }
+    }
+  };
+
   if (loading) return (
     <div className="flex items-center justify-center p-20">
       <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
@@ -137,7 +155,26 @@ export default function Admin() {
           <div className="p-4 bg-red-50 border border-red-100 rounded-sm text-center space-y-2">
             <p className="text-red-600 text-[11px] font-black uppercase">অ্যাক্সেস ডিনাইড</p>
             <p className="text-[12px] text-gray-700 font-bold">
-              আপনি <span className="text-primary italic">{user.email}</span> দিয়ে লগইন করেছেন, যা এডমিন ডাটাবেজে নেই।
+              আপনি <span className="text-primary italic">{user.email}</span> দিয়ে লগইন করেছেন।
+            </p>
+            <p className="text-[10px] text-gray-500 font-bold">
+              সিস্টেম শুধুমাত্র <span className="italic font-black">mk.rabbani.cse@gmail.com</span> একাউন্টকে এডমিন হিসেবে চেনে। 
+              দয়া করে সঠিক একাউন্ট দিয়ে পুনরায় লগইন করুন।
+            </p>
+          </div>
+        )}
+
+        {authError && (
+          <div className="p-4 bg-red-100 border border-red-200 rounded text-left space-y-2">
+            <p className="text-red-700 text-[11px] font-black uppercase flex items-center gap-2">
+              <Lock className="w-3 h-3" /> Error Details:
+            </p>
+            <code className="block text-[10px] bg-white/50 p-2 rounded break-all font-mono">
+              {authError}
+            </code>
+            <p className="text-[10px] text-red-600 font-bold">
+              * টিপস: উপরের Project ID-টি আপনার Firebase Console URL-এর সাথে মিলছে কি না দেখুন। ব্রাউজারের ইনকগনিটো মুডে চেষ্টা করুন। 
+              Vercel URL-টি (govt-school-psi.vercel.app) অবশ্যই ঐ প্রজেক্টের Authorized Domains-এ থাকতে হবে।
             </p>
           </div>
         )}
@@ -147,12 +184,14 @@ export default function Admin() {
         </p>
 
         {!user ? (
-          <button 
-            onClick={login}
-            className="w-full bg-primary text-white py-3 rounded-sm font-black hover:bg-opacity-90 transition-all flex items-center justify-center gap-2 shadow-md"
-          >
-            গুগল দিয়ে লগইন করুন
-          </button>
+          <div className="space-y-4">
+            <button 
+              onClick={handleLogin}
+              className="w-full bg-primary text-white py-3 rounded-sm font-black hover:bg-opacity-90 transition-all flex items-center justify-center gap-2 shadow-md"
+            >
+              গুগল দিয়ে লগইন করুন
+            </button>
+          </div>
         ) : (
           <button 
             onClick={signout}
