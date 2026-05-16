@@ -132,15 +132,41 @@ export default function Admin() {
       <div className="max-w-md mx-auto mt-20 p-8 gov-box text-center space-y-6">
         <Lock className="w-12 h-12 text-primary mx-auto" />
         <h2 className="text-2xl font-black text-primary uppercase italic">এডমিন লগইন</h2>
+        
+        {user && !isAdmin && (
+          <div className="p-4 bg-red-50 border border-red-100 rounded-sm text-center space-y-2">
+            <p className="text-red-600 text-[11px] font-black uppercase">অ্যাক্সেস ডিনাইড</p>
+            <p className="text-[12px] text-gray-700 font-bold">
+              আপনি <span className="text-primary italic">{user.email}</span> দিয়ে লগইন করেছেন, যা এডমিন ডাটাবেজে নেই।
+            </p>
+          </div>
+        )}
+
         <p className="text-[12px] text-gray-500 font-bold">
-          শুধুমাত্র রেজিস্টার্ড এডমিন এই ড্যাশবোর্ড ব্যবহার করতে পারবেন।
+          শুধুমাত্র রেজিস্টার্ড এডমিন এই ড্যাশবোর্ড ব্যবহার করতে পারবেন। ভিজিটরদের জন্য এই পেজটি উন্মুক্ত নয়।
         </p>
-        <button 
-          onClick={login}
-          className="w-full bg-primary text-white py-3 rounded-sm font-black hover:bg-opacity-90 transition-all flex items-center justify-center gap-2"
-        >
-          গুগল দিয়ে লগইন করুন
-        </button>
+
+        {!user ? (
+          <button 
+            onClick={login}
+            className="w-full bg-primary text-white py-3 rounded-sm font-black hover:bg-opacity-90 transition-all flex items-center justify-center gap-2 shadow-md"
+          >
+            গুগল দিয়ে লগইন করুন
+          </button>
+        ) : (
+          <button 
+            onClick={signout}
+            className="w-full bg-gray-100 text-gray-800 py-3 rounded-sm font-black hover:bg-gray-200 transition-all flex items-center justify-center gap-2"
+          >
+            অন্য একাউন্ট দিয়ে চেষ্টা করুন
+          </button>
+        )}
+
+        <div className="pt-6 border-t border-gray-100">
+           <p className="text-[10px] text-gray-400 font-bold leading-relaxed">
+             * লগইন করতে সমস্যা হলে আপনার ব্রাউজারের কুকি সচল আছে কি না পরীক্ষা করুন এবং Firebase কনসোলে আপনার ডোমেইনটি Allowlist করা আছে কি না নিশ্চিত হোন।
+           </p>
+        </div>
       </div>
     );
   }
