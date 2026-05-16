@@ -1,5 +1,6 @@
 import React from 'react';
-import { Bell, User, Link as LinkIcon, Download, Shield, ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Bell, User, Link as LinkIcon, Download, ChevronRight, LayoutGrid, Phone, FileText, Shield } from 'lucide-react';
 
 export default function Sidebar() {
   return (
@@ -21,28 +22,28 @@ export default function Sidebar() {
           <p className="text-[11px] text-gray-600 italic leading-relaxed mb-4 p-2 bg-gray-50 rounded">
             "মানসম্মত শিক্ষা ও নৈতিক বিকাশের মাধ্যমে শিক্ষার্থীদের ভবিষ্যৎ সুনাগরিক হিসেবে গড়ে তোলাই আমাদের মূল লক্ষ্য।"
           </p>
-          <button className="bg-primary text-white px-4 py-1.5 rounded-sm text-[10px] font-bold hover:bg-opacity-90 shadow-sm">
+          <Link to="/principal-message" className="bg-primary text-white px-4 py-1.5 rounded-sm text-[10px] font-bold hover:bg-opacity-90 shadow-sm text-center block w-full">
             বিস্তারিত...
-          </button>
+          </Link>
         </div>
       </div>
 
-      {/* Mujib Corner */}
-      <div className="gov-box" id="mujib-corner">
+      {/* E-Services Widget */}
+      <div className="gov-box" id="eservices-widget">
          <div className="gov-title-bar bg-secondary">
-           <Shield className="w-4 h-4" /> মুজিব কর্নার
+           <LayoutGrid className="w-4 h-4" /> ই-সেবা
          </div>
-         <div className="p-2">
-            <div className="bg-gray-50 p-4 border border-gray-100 flex items-center justify-center">
-              <img 
-                src="https://mujib100.gov.bd/themes/mujib100/assets/images/logo.png" 
-                alt="Mujib 100" 
-                className="w-3/4 object-contain grayscale hover:grayscale-0 transition-all duration-500"
-              />
-            </div>
-            <button className="w-full mt-2 border border-secondary/30 text-secondary py-1 text-[10px] font-black hover:bg-secondary hover:text-white transition-colors">
-              বঙ্গবন্ধু গ্যালারি
-            </button>
+         <div className="p-2 space-y-1">
+            {[
+              { name: 'সিটিজেন চার্টার', icon: Shield },
+              { name: 'অনলাইন অভিযোগ (GRS)', icon: Phone },
+              { name: 'ডাউনলোড ফরম', icon: FileText },
+            ].map((service) => (
+              <button key={service.name} className="w-full flex items-center gap-2 p-2 hover:bg-gray-50 border-b border-gray-100 last:border-0 transition-colors text-left group">
+                <service.icon className="w-3.5 h-3.5 text-secondary group-hover:scale-110 transition-transform" />
+                <span className="text-[11px] font-bold text-gray-700">{service.name}</span>
+              </button>
+            ))}
          </div>
       </div>
 

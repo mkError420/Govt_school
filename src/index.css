@@ -25,6 +25,10 @@ body {
   @apply bg-primary text-white px-4 py-1.5 text-sm font-bold border-b border-secondary/20 shadow-sm flex items-center gap-2;
 }
 
+.gov-input {
+  @apply w-full px-4 py-2 bg-white border border-gray-200 rounded-sm text-[12px] font-bold text-gray-800 placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all;
+}
+
 .gov-card {
   @apply bg-white border border-gray-200 rounded-sm hover:border-primary transition-colors p-4 shadow-sm;
 }

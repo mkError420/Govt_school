@@ -1,60 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Bell, Search, Filter, Download, Calendar } from 'lucide-react';
+import { subscribeToCollection } from '../lib/firebase';
 
 export default function Notices() {
-  const [filter, setFilter] = useState('All');
+  const [filter, setFilter] = useState('সব');
+  const [notices, setNotices] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const notices = [
-    {
-      id: 1,
-      title: 'এসএসসি ২০২৬ ব্যবহারিক পরীক্ষার সময়সূচি',
-      category: 'একাডেমিক',
-      date: '১৫ মে, ২০২৬',
-      urgent: true,
-    },
-    {
-      id: 2,
-      title: '৬ষ্ঠ শ্রেণীতে ভর্তির চূড়ান্ত বিজ্ঞপ্তি - সেশন ২০২৭',
-      category: 'ভর্তি',
-      date: '১০ মে, ২০২৬',
-      urgent: false,
-    },
-    {
-      id: 3,
-      title: 'অর্ধ-বার্ষিক পরীক্ষার ফলাফল প্রকাশ সংক্রান্ত',
-      category: 'ফলাফল',
-      date: '০৫ মে, ২০২৬',
-      urgent: false,
-    },
-    {
-      id: 4,
-      title: 'গ্রীষ্মকালীন ছুটির তালিকা ও শিক্ষা ক্যালেন্ডার',
-      category: 'একাডেমিক',
-      date: '০১ মে, ২০২৬',
-      urgent: false,
-    },
-    {
-      id: 5,
-      title: 'বার্ষিক ক্রীড়া ও সাংস্কৃতিক অনুষ্ঠানের সময়সূচি',
-      category: 'ইভেন্ট',
-      date: '২৮ এপ্রিল, ২০২৬',
-      urgent: false,
-    },
-    {
-      id: 6,
-      title: 'বিদ্যালয় পুনর্গঠন ও পরিচালনা কমিটির সভা',
-      category: 'প্রশাসন',
-      date: '২৫ এপ্রিল, ২০২৬',
-      urgent: true,
-    },
-  ];
+  useEffect(() => {
+    const unsub = subscribeToCollection('notices', (data) => {
+      setNotices(data);
+      setLoading(false);
+    }, 'date');
+    return () => unsub();
+  }, []);
 
   const categories = ['সব', 'একাডেমিক', 'ভর্তি', 'ফলাফল', 'ইভেন্ট', 'প্রশাসন'];
 
-  const filteredNotices = filter === 'সব' 
-    ? notices 
-    : notices.filter(n => n.category === filter);
+  const filteredNotices = notices.filter(n => {
+    const matchesFilter = filter === 'সব' || n.category === filter;
+    const matchesSearch = n.title.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
+
+  if (loading) {
+    return (
+      <div className="flex justify-center p-20">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -74,6 +51,8 @@ export default function Notices() {
              <input
                type="text"
                placeholder="খুঁজুন..."
+               value={searchQuery}
+               onChange={(e) => setSearchQuery(e.target.value)}
                className="w-full pl-7 pr-3 py-1 bg-white/10 border border-white/20 text-white placeholder-white/50 text-[11px] focus:bg-white focus:text-gray-800 focus:outline-none rounded-sm transition-all"
              />
            </div>

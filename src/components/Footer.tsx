@@ -1,5 +1,6 @@
 import React from 'react';
-import { Mail, Phone, MapPin, ExternalLink, ShieldCheck } from 'lucide-react';
+import { Mail, Phone, MapPin, ExternalLink, ShieldCheck, Lock } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -100,6 +101,9 @@ export default function Footer() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-[11px] text-gray-500 font-bold">
           <p>© {currentYear} রংপুর সরকারি বালিকা উচ্চ বিদ্যালয়। সর্বস্বত্ব সংরক্ষিত।</p>
           <div className="flex items-center gap-6">
+            <Link to="/admin" className="flex items-center gap-1 hover:text-white transition-colors">
+              <Lock className="w-3 h-3" /> এডমিন লগইন
+            </Link>
             <span className="hover:text-white cursor-pointer transition-colors">গোপনীয়তা নীতি</span>
             <span className="hover:text-white cursor-pointer transition-colors">ব্যবহারের শর্তাবলী</span>
             <span className="text-secondary/60">পরিকল্পনা ও বাস্তবায়ন: আইসিটি সেল, আরজিজিএইচএস</span>

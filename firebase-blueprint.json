@@ -1,0 +1,96 @@
+{
+  "entities": {
+    "Notice": {
+      "title": "School Notice",
+      "description": "Important announcements for the school community",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "date": { "type": "string" },
+        "category": { "type": "string", "enum": ["General", "Exam", "Event", "Holiday"] },
+        "fileUrl": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "date", "category"]
+    },
+    "Teacher": {
+      "title": "Teacher Profile",
+      "description": "Details of faculty members",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "pdsId": { "type": "string" },
+        "email": { "type": "string" },
+        "subject": { "type": "string" },
+        "image": { "type": "string" },
+        "order": { "type": "number" }
+      },
+      "required": ["name", "pdsId", "role"]
+    },
+    "Staff": {
+      "title": "Office Staff",
+      "description": "Details of support and administrative staff",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "pdsId": { "type": "string" },
+        "email": { "type": "string" },
+        "image": { "type": "string" },
+        "order": { "type": "number" }
+      },
+      "required": ["name", "pdsId", "role"]
+    },
+    "GalleryItem": {
+      "title": "Gallery Image",
+      "description": "Photos of school events and campus",
+      "type": "object",
+      "properties": {
+        "url": { "type": "string" },
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["url", "title", "category"]
+    },
+    "AcademicDoc": {
+      "title": "Academic Document",
+      "description": "Syllabus, Routines, and Exam Schedules",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "type": { "type": "string", "enum": ["Syllabus", "Routine", "ExamSchedule"] },
+        "class": { "type": "string" },
+        "version": { "type": "string" },
+        "size": { "type": "string" },
+        "fileUrl": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "type"]
+    }
+  },
+  "firestore": {
+    "notices": {
+      "schema": "Notice",
+      "description": "Collection of all public notices"
+    },
+    "teachers": {
+      "schema": "Teacher",
+      "description": "profiles of academic staff"
+    },
+    "staff": {
+      "schema": "Staff",
+      "description": "profiles of non-academic staff"
+    },
+    "gallery": {
+      "schema": "GalleryItem",
+      "description": "School photo gallery"
+    },
+    "academic_docs": {
+      "schema": "AcademicDoc",
+      "description": "Academic resources like syllabus and routines"
+    }
+  }
+}
