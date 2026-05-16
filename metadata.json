@@ -1,0 +1,6 @@
+{
+  "name": "Rangpur Govt. Girls' High School",
+  "description": "A fully responsive, multipage school website with a government theme in Bangladesh.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

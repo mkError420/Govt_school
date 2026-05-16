@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #006a4e;
+  --color-secondary: #f42a41;
+  --font-sans: "Inter", "AdorshoLipi", ui-sans-serif, system-ui, sans-serif;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+body {
+  @apply bg-[#f0f0f0] text-gray-900;
+}
+
+/* Traditional Govt Portal Styles */
+.gov-box {
+  @apply bg-white border border-gray-300 rounded-sm shadow-sm overflow-hidden;
+}
+
+.gov-header-bg {
+  background: url('https://bangladesh.gov.bd/themes/responsive_npf/img/bg_main.png') repeat-x top left;
+}
+
+.gov-title-bar {
+  @apply bg-primary text-white px-4 py-1.5 text-sm font-bold border-b border-secondary/20 shadow-sm flex items-center gap-2;
+}
+
+.gov-card {
+  @apply bg-white border border-gray-200 rounded-sm hover:border-primary transition-colors p-4 shadow-sm;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+.animate-marquee {
+  animation: marquee 40s linear infinite;
+  display: inline-block;
+}
+
+.pause {
+  animation-play-state: paused;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #006a4e;
+  border-radius: 4px;
+}
