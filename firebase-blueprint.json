@@ -69,6 +69,16 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["title", "type"]
+    },
+    "Settings": {
+      "title": "Site Settings",
+      "description": "Dynamic content for static-like pages (Principal message, vision, etc.)",
+      "type": "object",
+      "properties": {
+        "key": { "type": "string" },
+        "value": { "type": "object" }
+      },
+      "required": ["key", "value"]
     }
   },
   "firestore": {
@@ -91,6 +101,10 @@
     "academic_docs": {
       "schema": "AcademicDoc",
       "description": "Academic resources like syllabus and routines"
+    },
+    "settings": {
+      "schema": "Settings",
+      "description": "Generic settings and dynamic content blocks"
     }
   }
 }

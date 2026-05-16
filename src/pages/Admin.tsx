@@ -11,25 +11,36 @@ import {
   Trash2, 
   Edit3,
   Calendar,
-  Lock
+  Lock,
+  Settings as SettingsIcon,
+  Save
 } from 'lucide-react';
 import { 
   subscribeToCollection, 
   createDocument, 
   updateDocument, 
-  deleteDocument 
+  deleteDocument,
+  db
 } from '../lib/firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 export default function Admin() {
   const { user, login, signout, isAdmin, loading } = useAuth();
-  const [activeTab, setActiveTab] = useState<'notices' | 'teachers' | 'staff' | 'gallery' | 'docs'>('notices');
+  const [activeTab, setActiveTab] = useState<'notices' | 'teachers' | 'staff' | 'gallery' | 'docs' | 'settings'>('notices');
   const [data, setData] = useState<any[]>([]);
 
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<any>({});
+  
+  // Settings state
+  const [settingsData, setSettingsData] = useState<any>({
+    principal: { name: '', role: '', education: '', pdsId: '', email: '', image: '', message: [] },
+    vision: { points: [], commitments: [], quote: '' }
+  });
 
   useEffect(() => {
-    if (isAdmin) {
+    if (isAdmin && activeTab !== 'settings') {
       const collectionMap = {
         notices: 'notices',
         teachers: 'teachers',
@@ -37,12 +48,25 @@ export default function Admin() {
         gallery: 'gallery',
         docs: 'academic_docs'
       };
-      const unsub = subscribeToCollection(collectionMap[activeTab], setData, activeTab === 'notices' ? 'date' : 'order');
+      const unsub = subscribeToCollection((collectionMap as any)[activeTab], setData, activeTab === 'notices' ? 'date' : 'order');
       return () => unsub();
+    } else if (isAdmin && activeTab === 'settings') {
+      const fetchSettings = async () => {
+        const pRef = doc(db, 'settings', 'principal_message');
+        const vRef = doc(db, 'settings', 'vision_mission');
+        const pSnap = await getDoc(pRef);
+        const vSnap = await getDoc(vRef);
+        
+        setSettingsData({
+          principal: pSnap.exists() ? pSnap.data().value : settingsData.principal,
+          vision: vSnap.exists() ? vSnap.data().value : settingsData.vision
+        });
+      };
+      fetchSettings();
     }
   }, [activeTab, isAdmin]);
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleCreateOrUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     const collectionMap = {
       notices: 'notices',
@@ -52,12 +76,23 @@ export default function Admin() {
       docs: 'academic_docs'
     };
     try {
-      await createDocument(collectionMap[activeTab], formData);
+      if (editingId) {
+        await updateDocument((collectionMap as any)[activeTab], editingId, formData);
+      } else {
+        await createDocument((collectionMap as any)[activeTab], formData);
+      }
       setShowAddForm(false);
+      setEditingId(null);
       setFormData({});
     } catch (err) {
-      alert('Error adding document: ' + err);
+      alert('Error saving document: ' + err);
     }
+  };
+
+  const handleEdit = (item: any) => {
+    setEditingId(item.id);
+    setFormData(item);
+    setShowAddForm(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -70,10 +105,19 @@ export default function Admin() {
         docs: 'academic_docs'
       };
       try {
-        await deleteDocument(collectionMap[activeTab], id);
+        await deleteDocument((collectionMap as any)[activeTab], id);
       } catch (err) {
         alert('Error deleting document: ' + err);
       }
+    }
+  };
+
+  const handleSaveSettings = async (key: string, value: any) => {
+    try {
+      await setDoc(doc(db, 'settings', key), { key, value });
+      alert('Settings updated successfully!');
+    } catch (err) {
+      alert('Error updating settings: ' + err);
     }
   };
 
@@ -132,140 +176,172 @@ export default function Admin() {
         <TabButton active={activeTab === 'staff'} onClick={() => setActiveTab('staff')} icon={Users} label="কর্মচারী" />
         <TabButton active={activeTab === 'gallery'} onClick={() => setActiveTab('gallery')} icon={ImageIcon} label="গ্যালারি" />
         <TabButton active={activeTab === 'docs'} onClick={() => setActiveTab('docs')} icon={FileText} label="একাডেমিক তথ্য" />
+        <TabButton active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} icon={SettingsIcon} label="সেটিংস" />
       </div>
 
-      <div className="gov-box bg-white overflow-hidden shadow-xl">
-        <div className="gov-title-bar flex justify-between items-center">
-          <span className="flex items-center gap-2">
-            <Edit3 className="w-4 h-4" /> ডাটা ম্যানেজমেন্ট ({activeTab})
-          </span>
-          <button 
-            onClick={() => setShowAddForm(!showAddForm)}
-            className="bg-secondary text-white px-3 py-1 rounded-sm text-[10px] font-black flex items-center gap-1 hover:bg-opacity-90 transition-all"
-          >
-            <Plus className="w-3 h-3" /> {showAddForm ? 'বাতিল করুন' : 'নতুন তথ্য যুক্ত করুন'}
-          </button>
-        </div>
-
-        {showAddForm && (
-          <motion.form 
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            className="p-6 border-b border-gray-100 bg-gray-50/50 space-y-4"
-            onSubmit={handleCreate}
-          >
+      {activeTab === 'settings' ? (
+        <div className="space-y-8">
+          <div className="gov-box bg-white p-6 space-y-6">
+            <h3 className="text-lg font-black text-primary border-b border-gray-100 pb-3">প্রধান শিক্ষকের বাণী সেটিংস</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input 
-                type="text" 
-                placeholder="শিরোনাম / নাম" 
-                className="gov-input"
-                required
-                onChange={(e) => setFormData({ ...formData, [activeTab === 'notices' ? 'title' : 'name']: e.target.value })}
+              <input type="text" placeholder="নাম" className="gov-input" value={settingsData.principal.name || ''} onChange={(e) => setSettingsData({ ...settingsData, principal: { ...settingsData.principal, name: e.target.value } })} />
+              <input type="text" placeholder="পদবী" className="gov-input" value={settingsData.principal.role || ''} onChange={(e) => setSettingsData({ ...settingsData, principal: { ...settingsData.principal, role: e.target.value } })} />
+              <input type="text" placeholder="শিক্ষা" className="gov-input" value={settingsData.principal.education || ''} onChange={(e) => setSettingsData({ ...settingsData, principal: { ...settingsData.principal, education: e.target.value } })} />
+              <input type="text" placeholder="ইমেইল" className="gov-input" value={settingsData.principal.email || ''} onChange={(e) => setSettingsData({ ...settingsData, principal: { ...settingsData.principal, email: e.target.value } })} />
+              <input type="text" placeholder="ছবি URL" className="gov-input" value={settingsData.principal.image || ''} onChange={(e) => setSettingsData({ ...settingsData, principal: { ...settingsData.principal, image: e.target.value } })} />
+              <textarea 
+                placeholder="বাণী (একাধিক প্যারাগ্রাফ ডাবল নিউলাইন দিয়ে আলাদা করুন)" 
+                className="gov-input md:col-span-2 min-h-[150px]" 
+                value={(settingsData.principal.message || []).join('\n\n')}
+                onChange={(e) => setSettingsData({ ...settingsData, principal: { ...settingsData.principal, message: e.target.value.split('\n\n') } })}
               />
-              {activeTab === 'notices' && (
-                <select 
-                  className="gov-input"
-                  required
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                >
-                  <option value="">ক্যাটাগরি নির্বাচন করুন</option>
-                  <option value="General">General</option>
-                  <option value="Exam">Exam</option>
-                  <option value="Event">Event</option>
-                  <option value="Holiday">Holiday</option>
-                </select>
-              )}
-              {activeTab === 'notices' && (
+            </div>
+            <button onClick={() => handleSaveSettings('principal_message', settingsData.principal)} className="w-full bg-primary text-white py-2 rounded-sm font-black flex items-center justify-center gap-2 uppercase text-sm">
+              <Save className="w-4 h-4" /> প্রধান শিক্ষকের তথ্য সংরক্ষণ করুন
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="gov-box bg-white overflow-hidden shadow-xl">
+          <div className="gov-title-bar flex justify-between items-center">
+            <span className="flex items-center gap-2">
+              <Edit3 className="w-4 h-4" /> ডাটা ম্যানেজমেন্ট ({activeTab})
+            </span>
+            <button 
+              onClick={() => { setShowAddForm(!showAddForm); setEditingId(null); setFormData({}); }}
+              className="bg-secondary text-white px-3 py-1 rounded-sm text-[10px] font-black flex items-center gap-1 hover:bg-opacity-90 transition-all"
+            >
+              <Plus className="w-3 h-3" /> {showAddForm ? 'বাতিল করুন' : 'নতুন তথ্য যুক্ত করুন'}
+            </button>
+          </div>
+
+          {showAddForm && (
+            <motion.form 
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              className="p-6 border-b border-gray-100 bg-gray-50/50 space-y-4"
+              onSubmit={handleCreateOrUpdate}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input 
                   type="text" 
-                  placeholder="তারিখ (উদাঃ ১৫ মে, ২০২৬)" 
+                  placeholder={activeTab === 'notices' ? 'শিরোনাম' : 'নাম'} 
                   className="gov-input"
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                  required
+                  value={formData[activeTab === 'notices' ? 'title' : 'name'] || ''}
+                  onChange={(e) => setFormData({ ...formData, [activeTab === 'notices' ? 'title' : 'name']: e.target.value })}
                 />
-              )}
-              {(activeTab === 'teachers' || activeTab === 'staff') && (
-                <>
-                  <input type="text" placeholder="পদবী" className="gov-input" onChange={(e) => setFormData({ ...formData, role: e.target.value })} />
-                  <input type="text" placeholder="PDS ID / ID" className="gov-input" onChange={(e) => setFormData({ ...formData, pdsId: e.target.value })} />
-                  <input type="text" placeholder="ইমেইল" className="gov-input" onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
-                  <input type="text" placeholder="ছবি URL" className="gov-input" onChange={(e) => setFormData({ ...formData, image: e.target.value })} />
-                </>
-              )}
-              {activeTab === 'teachers' && (
-                <input type="text" placeholder="বিষয়" className="gov-input" onChange={(e) => setFormData({ ...formData, subject: e.target.value })} />
-              )}
-              {activeTab === 'gallery' && (
-                <>
-                  <input type="text" placeholder="ছবি URL" className="gov-input" onChange={(e) => setFormData({ ...formData, url: e.target.value })} />
-                  <input type="text" placeholder="ক্যাটাগরি" className="gov-input" onChange={(e) => setFormData({ ...formData, category: e.target.value })} />
-                  <input type="text" placeholder="শিরোনাম" className="gov-input" onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
-                </>
-              )}
-              {activeTab === 'docs' && (
-                <>
-                  <input type="text" placeholder="ফাইলের নাম" className="gov-input" onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
-                  <select className="gov-input" onChange={(e) => setFormData({ ...formData, type: e.target.value })}>
-                    <option value="">টাইপ নির্বাচন করুন</option>
-                    <option value="Syllabus">Syllabus</option>
-                    <option value="Routine">Routine</option>
-                    <option value="ExamSchedule">ExamSchedule</option>
+                {activeTab === 'notices' && (
+                  <select 
+                    className="gov-input"
+                    required
+                    value={formData.category || ''}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  >
+                    <option value="">ক্যাটাগরি নির্বাচন করুন</option>
+                    <option value="General">General</option>
+                    <option value="Exam">Exam</option>
+                    <option value="Event">Event</option>
+                    <option value="Holiday">Holiday</option>
                   </select>
-                  <input type="text" placeholder="শ্রেণী" className="gov-input" onChange={(e) => setFormData({ ...formData, class: e.target.value })} />
-                  <input type="text" placeholder="ফাইল URL" className="gov-input" onChange={(e) => setFormData({ ...formData, fileUrl: e.target.value })} />
-                </>
-              )}
-            </div>
-            <button className="w-full bg-primary text-white py-2 rounded-sm font-black text-sm hover:bg-opacity-90">সংরক্ষণ করুন</button>
-          </motion.form>
-        )}
-        
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-gray-50 border-b border-gray-100">
-              <tr>
-                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase">তথ্য / নাম</th>
-                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase text-center">স্থিতি</th>
-                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase text-center">অ্যাকশন</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {data.map((item) => (
-                <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-6 py-4">
-                    <p className="text-[13px] font-black text-gray-800 leading-tight">
-                      {item.title || item.name || item.url}
-                    </p>
-                    <p className="text-[10px] text-gray-400 font-bold">{item.id}</p>
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <span className="bg-green-50 text-green-600 text-[10px] font-black px-2 py-0.5 rounded-sm uppercase">Active</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex justify-center gap-2">
-                      <button className="p-2 text-primary hover:bg-primary/5 rounded transition-colors">
-                        <Edit3 className="w-4 h-4" />
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(item.id)}
-                        className="p-2 text-red-500 hover:bg-red-50 rounded transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {data.length === 0 && (
+                )}
+                {activeTab === 'notices' && (
+                  <input 
+                    type="text" 
+                    placeholder="তারিখ (উদাঃ ১৫ মে, ২০২৬)" 
+                    className="gov-input"
+                    value={formData.date || ''}
+                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                  />
+                )}
+                {(activeTab === 'teachers' || activeTab === 'staff') && (
+                  <>
+                    <input type="text" placeholder="পদবী" className="gov-input" value={formData.role || ''} onChange={(e) => setFormData({ ...formData, role: e.target.value })} />
+                    <input type="text" placeholder="PDS ID / ID" className="gov-input" value={formData.pdsId || ''} onChange={(e) => setFormData({ ...formData, pdsId: e.target.value })} />
+                    <input type="text" placeholder="ইমেইল" className="gov-input" value={formData.email || ''} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+                    <input type="text" placeholder="ছবি URL" className="gov-input" value={formData.image || ''} onChange={(e) => setFormData({ ...formData, image: e.target.value })} />
+                    <input type="number" placeholder="ক্রম" className="gov-input" value={formData.order || ''} onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) })} />
+                  </>
+                )}
+                {activeTab === 'teachers' && (
+                  <input type="text" placeholder="বিষয়" className="gov-input" value={formData.subject || ''} onChange={(e) => setFormData({ ...formData, subject: e.target.value })} />
+                )}
+                {activeTab === 'gallery' && (
+                  <>
+                    <input type="text" placeholder="ছবি URL" className="gov-input" value={formData.url || ''} onChange={(e) => setFormData({ ...formData, url: e.target.value })} />
+                    <input type="text" placeholder="ক্যাটাগরি" className="gov-input" value={formData.category || ''} onChange={(e) => setFormData({ ...formData, category: e.target.value })} />
+                    <input type="text" placeholder="শিরোনাম" className="gov-input" value={formData.title || ''} onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
+                  </>
+                )}
+                {activeTab === 'docs' && (
+                  <>
+                    <input type="text" placeholder="ফাইলের নাম" className="gov-input" value={formData.title || ''} onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
+                    <select className="gov-input" value={formData.type || ''} onChange={(e) => setFormData({ ...formData, type: e.target.value })}>
+                      <option value="">টাইপ নির্বাচন করুন</option>
+                      <option value="Syllabus">Syllabus</option>
+                      <option value="Routine">Routine</option>
+                      <option value="ExamSchedule">ExamSchedule</option>
+                    </select>
+                    <input type="text" placeholder="শ্রেণী" className="gov-input" value={formData.class || ''} onChange={(e) => setFormData({ ...formData, class: e.target.value })} />
+                    <input type="text" placeholder="ফাইল URL" className="gov-input" value={formData.fileUrl || ''} onChange={(e) => setFormData({ ...formData, fileUrl: e.target.value })} />
+                  </>
+                )}
+              </div>
+              <button className="w-full bg-primary text-white py-2 rounded-sm font-black text-sm hover:bg-opacity-90">{editingId ? 'পরিবর্তন সংরক্ষণ করুন' : 'সংরক্ষণ করুন'}</button>
+            </motion.form>
+          )}
+          
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead className="bg-gray-50 border-b border-gray-100">
                 <tr>
-                  <td colSpan={3} className="px-6 py-20 text-center text-gray-400 text-sm italic">
-                    কোন তথ্য পাওয়া যায়নি। দয়া করে নতুন ডাটা যুক্ত করুন।
-                  </td>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase">তথ্য / নাম</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase text-center">স্থিতি</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase text-center">অ্যাকশন</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {data.map((item) => (
+                  <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="px-6 py-4">
+                      <p className="text-[13px] font-black text-gray-800 leading-tight">
+                        {item.title || item.name || item.url}
+                      </p>
+                      <p className="text-[10px] text-gray-400 font-bold">{item.id}</p>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <span className="bg-green-50 text-green-600 text-[10px] font-black px-2 py-0.5 rounded-sm uppercase">Active</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex justify-center gap-2">
+                        <button 
+                          onClick={() => handleEdit(item)}
+                          className="p-2 text-primary hover:bg-primary/5 rounded transition-colors"
+                        >
+                          <Edit3 className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(item.id)}
+                          className="p-2 text-red-500 hover:bg-red-50 rounded transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {data.length === 0 && (
+                  <tr>
+                    <td colSpan={3} className="px-6 py-20 text-center text-gray-400 text-sm italic">
+                      কোন তথ্য পাওয়া যায়নি। দয়া করে নতুন ডাটা যুক্ত করুন।
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
     </motion.div>
   );
 }
